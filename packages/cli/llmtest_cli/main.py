@@ -134,7 +134,7 @@ def cmd_providers(args: argparse.Namespace) -> int:
 
     if not providers:
         print("No providers found.")
-        print("Install a provider: pip install llmtest[openai]")
+        print("Install a provider: pip install pytest-llmtest[openai]")
         return 0
 
     print("Available LLM providers:")

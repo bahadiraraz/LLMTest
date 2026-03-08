@@ -71,7 +71,7 @@ class LLMJudge(BaseAssertion):
             raise ValueError(
                 f"Provider '{self._provider}' not found. "
                 f"Available: {ProviderRegistry.available()}. "
-                f"Install the provider package (e.g. pip install llmtest[openai])."
+                f"Install the provider package (e.g. pip install pytest-llmtest[openai])."
             )
         return provider
 

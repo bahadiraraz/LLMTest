@@ -1,4 +1,4 @@
-# llmtest — Root pyproject.toml (monorepo workspace)
+# llm-test — Root pyproject.toml (monorepo workspace)
 # Built on Pydantic for type safety and validation.
 #
 # Structure:
@@ -20,7 +20,7 @@ members = [
 ]
 
 [project]
-name = "llmtest"
+name = "pytest-llmtest"
 version = "0.1.0"
 description = "The pytest for LLMs — fast, Pydantic-based assertions for AI applications"
 readme = "README.md"
@@ -59,7 +59,7 @@ openai = ["llmtest-openai"]
 anthropic = ["llmtest-anthropic"]
 ollama = ["llmtest-ollama"]
 pydantic-ai = ["pydantic-ai>=1.0"]
-all = ["llmtest[openai,anthropic,ollama,pydantic-ai]"]
+all = ["pytest-llmtest[openai,anthropic,ollama,pydantic-ai]"]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",

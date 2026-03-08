@@ -2,7 +2,7 @@
 Ollama provider — run LLM tests locally, no API key needed.
 
 Install: pip install llmtest-ollama
-Or: pip install llmtest[ollama]
+Or: pip install pytest-llmtest[ollama]
 
 Requires Ollama running locally: https://ollama.ai
 Default endpoint: http://localhost:11434

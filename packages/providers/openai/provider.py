@@ -2,7 +2,7 @@
 OpenAI provider.
 
 Install: pip install llmtest-openai
-Or: pip install llmtest[openai]
+Or: pip install pytest-llmtest[openai]
 
 Design: Lazy import of openai SDK.
 If someone doesn't use OpenAI, they pay zero import cost.

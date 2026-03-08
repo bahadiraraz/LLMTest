@@ -2,7 +2,7 @@
 Anthropic provider.
 
 Install: pip install llmtest-anthropic
-Or: pip install llmtest[anthropic]
+Or: pip install pytest-llmtest[anthropic]
 
 Design: Same pattern as OpenAI provider — lazy import, exact pricing, auto-register.
 """
