@@ -5,6 +5,7 @@ conftest.py — register llmtest pytest plugin and providers.
 import importlib.util
 import os
 import sys
+from importlib.metadata import entry_points
 
 # Add package paths so pytest can find them
 ROOT = os.path.dirname(os.path.dirname(__file__))
@@ -12,8 +13,15 @@ sys.path.insert(0, ROOT)  # for `import llmtest`
 sys.path.insert(0, os.path.join(ROOT, "packages", "core"))
 sys.path.insert(0, os.path.join(ROOT, "packages", "pytest-plugin"))
 
-# Register the pytest plugin
-pytest_plugins = ["llmtest_pytest.plugin"]
+# Only register via conftest if the entry point isn't already installed.
+# When installed with `pip install -e`, pytest11 entry point auto-registers
+# the plugin. Registering again via pytest_plugins causes a conflict.
+_ep = entry_points()
+_pytest11 = _ep.get("pytest11", []) if isinstance(_ep, dict) else _ep.select(group="pytest11")
+_already_registered = any(ep.name == "llmtest" for ep in _pytest11)
+
+if not _already_registered:
+    pytest_plugins = ["llmtest_pytest.plugin"]
 
 
 def _import_provider(name: str, path: str):
