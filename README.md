@@ -71,6 +71,10 @@ uv sync --all-extras
 uv run pytest tests/ -v
 ```
 
+## Roadmap
+
+> **This library is under active development.** More providers (Gemini, DeepSeek, Mistral, etc.) and additional assertion types are coming soon.
+
 ## License
 
 MIT
