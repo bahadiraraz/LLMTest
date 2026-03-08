@@ -1,6 +1,12 @@
-# llmtest
+<p align="center">
+  <img src=".github/icon.svg" alt="LLMTest" width="80" height="80" />
+</p>
 
-**The pytest for LLMs.** Test your AI outputs like you test your code.
+<h1 align="center">llmtest</h1>
+
+<p align="center">
+  <strong>The pytest for LLMs.</strong> Test your AI outputs like you test your code.
+</p>
 
 [![PyPI version](https://badge.fury.io/py/llmtest.svg)](https://badge.fury.io/py/llmtest)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
