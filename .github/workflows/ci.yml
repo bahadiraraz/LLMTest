@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ─── Lint ───
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Ruff check
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+  # ─── Type check ───
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e packages/core
+          pip install mypy pydantic
+
+      - name: mypy
+        run: mypy packages/core/llmtest_core --ignore-missing-imports
+        continue-on-error: true  # non-blocking for now
+
+  # ─── Unit tests (no API calls) ───
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e packages/core
+          pip install -e packages/pytest-plugin
+          pip install pytest pytest-asyncio
+
+      - name: Run unit tests
+        run: pytest tests/ -v --tb=short -k "not real_anthropic and not pydantic_ai_integration and not pytest_plugin"
+
+  # ─── Integration tests (requires API keys) ───
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [lint, test-unit]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e packages/core
+          pip install -e packages/pytest-plugin
+          pip install -e packages/providers/anthropic
+          pip install -e packages/providers/openai
+          pip install pytest pytest-asyncio pydantic-ai
+
+      - name: Run Anthropic integration tests
+        if: env.ANTHROPIC_API_KEY != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: pytest tests/test_real_anthropic.py tests/test_pydantic_ai_integration.py -v --tb=short
+
+      - name: Run pytest plugin tests
+        if: env.ANTHROPIC_API_KEY != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: pytest tests/test_pytest_plugin.py -v --tb=short
+
+  # ─── Build check ───
+  build:
+    name: Build Packages
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build core
+        run: python -m build packages/core
+
+      - name: Build pytest-plugin
+        run: python -m build packages/pytest-plugin
+
+      - name: Build providers
+        run: |
+          python -m build packages/providers/openai
+          python -m build packages/providers/anthropic
+          python -m build packages/providers/ollama
+
+      - name: Build root package
+        run: python -m build .
+
+      - name: Check distributions
+        run: twine check packages/core/dist/* packages/pytest-plugin/dist/* dist/*

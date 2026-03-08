@@ -1,0 +1,126 @@
+# llmtest — Root pyproject.toml (monorepo workspace)
+# Built on Pydantic for type safety and validation.
+#
+# Structure:
+# - llmtest-core: pydantic models + assertions (core dependency: pydantic)
+# - llmtest-pytest: depends on core + pytest
+# - llmtest-cli: depends on core
+# - llmtest-openai: depends on core + openai
+# - llmtest-anthropic: depends on core + anthropic
+# - llmtest-ollama: depends on core + httpx
+
+[tool.uv.workspace]
+members = [
+    "packages/core",
+    "packages/pytest-plugin",
+    "packages/cli",
+    "packages/providers/openai",
+    "packages/providers/anthropic",
+    "packages/providers/ollama",
+]
+
+[project]
+name = "llmtest"
+version = "0.1.0"
+description = "The pytest for LLMs — fast, Pydantic-based assertions for AI applications"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Bahadır Araz", email = "bahadiraraz@protonmail.com" },
+]
+maintainers = [
+    { name = "Bahadır Araz", email = "bahadiraraz@protonmail.com" },
+]
+keywords = ["llm", "testing", "ai", "pytest", "evaluation", "pydantic"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "pydantic>=2.0",
+    "llmtest-core",
+    "llmtest-pytest",
+    "llmtest-cli",
+]
+
+[project.optional-dependencies]
+openai = ["llmtest-openai"]
+anthropic = ["llmtest-anthropic"]
+ollama = ["llmtest-ollama"]
+pydantic-ai = ["pydantic-ai>=1.0"]
+all = ["llmtest[openai,anthropic,ollama,pydantic-ai]"]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "ruff>=0.4",
+    "mypy>=1.0",
+    "coverage>=7.0",
+]
+
+[project.urls]
+Homepage = "https://llmtest.dev"
+Documentation = "https://docs.llmtest.dev"
+Repository = "https://github.com/bahadiraraz/llmtest"
+"Bug Tracker" = "https://github.com/bahadiraraz/llmtest/issues"
+Changelog = "https://github.com/bahadiraraz/llmtest/releases"
+
+[project.scripts]
+llmtest = "llmtest_cli.main:app"
+
+# ─────────────────────────────────────────────
+# Build system
+# ─────────────────────────────────────────────
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["llmtest"]
+
+[tool.hatch.build.targets.sdist]
+include = ["llmtest/", "README.md", "LICENSE", "pyproject.toml"]
+
+# ─────────────────────────────────────────────
+# Dev tooling
+# ─────────────────────────────────────────────
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP"]
+ignore = ["N801"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]
+"examples/*" = ["E402"]
+
+[tool.mypy]
+strict = true
+python_version = "3.10"
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+addopts = "-v --tb=short"
+markers = [
+    "llmtest: LLM tests (may incur API costs)",
+    "llm_provider: specify LLM provider",
+    "slow: slow tests",
+]
+
+[tool.coverage.run]
+source = ["packages/core/llmtest_core"]
+omit = ["*/tests/*", "*/examples/*"]
