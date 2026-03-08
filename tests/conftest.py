@@ -7,6 +7,11 @@ import os
 import sys
 from importlib.metadata import entry_points
 
+# Skip collection of test files whose dependencies aren't installed
+collect_ignore = []
+if not importlib.util.find_spec("pydantic_ai"):
+    collect_ignore.append("test_pydantic_ai_integration.py")
+
 # Add package paths so pytest can find them
 ROOT = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, ROOT)  # for `import llmtest`
@@ -17,7 +22,7 @@ sys.path.insert(0, os.path.join(ROOT, "packages", "pytest-plugin"))
 # When installed with `pip install -e`, pytest11 entry point auto-registers
 # the plugin. Registering again via pytest_plugins causes a conflict.
 _ep = entry_points()
-_pytest11 = _ep.get("pytest11", []) if isinstance(_ep, dict) else _ep.select(group="pytest11")
+_pytest11 = _ep.select(group="pytest11") if hasattr(_ep, "select") else _ep.get("pytest11", [])
 _already_registered = any(ep.name == "llmtest" for ep in _pytest11)
 
 if not _already_registered:
