@@ -154,7 +154,16 @@ class ValidJSON(BaseAssertion):
         if self.schema:
             try:
                 import jsonschema
-
+            except ImportError:
+                return AssertionResult(
+                    assertion_name=self.name,
+                    passed=False,
+                    severity=self.severity,
+                    reason=(
+                        "jsonschema package required for schema validation: pip install jsonschema"
+                    ),
+                )
+            try:
                 jsonschema.validate(parsed, self.schema)
             except jsonschema.ValidationError as e:
                 return AssertionResult(

@@ -112,6 +112,8 @@ class TestValidJSON:
         assert result.passed
 
     def test_with_schema(self):
+        pytest = __import__("pytest")
+        jsonschema = pytest.importorskip("jsonschema")  # noqa: F841
         schema = {
             "type": "object",
             "properties": {
