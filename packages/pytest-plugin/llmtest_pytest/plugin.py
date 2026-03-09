@@ -25,6 +25,12 @@ from llmtest_core.models import AgentTrace, AssertionResult, LLMInput, LLMOutput
 from llmtest_core.providers import BaseProvider, ProviderRegistry
 from llmtest_core.runners import RunConfig, TestRunner
 
+# Global collector for llmtest summary
+_test_results: list[dict] = []
+
+# Per-test output lines (printed in verbose mode)
+_current_test_lines: list[str] = []
+
 
 def _build_trace_from_output(output: LLMOutput) -> AgentTrace:
     """Build an AgentTrace from LLMOutput.tool_calls for agent assertion support."""
@@ -57,6 +63,65 @@ def _build_trace_from_output(output: LLMOutput) -> AgentTrace:
         total_tool_calls=len(steps),
         loop_detected=loop_detected,
     )
+
+
+def _format_assertion_line(assertion, result: AssertionResult) -> str:
+    """Format a single assertion result as a terminal line."""
+    name = getattr(assertion, "name", "unknown")
+    # Build a readable representation of the assertion
+    label = name
+    if hasattr(assertion, "text"):
+        label = f'{name}("{assertion.text}")'
+    elif hasattr(assertion, "tool_name"):
+        extra = ""
+        if getattr(assertion, "times", None) is not None:
+            extra = f", times={assertion.times}"
+        elif getattr(assertion, "min_times", 1) != 1:
+            extra = f", min_times={assertion.min_times}"
+        label = f'{name}("{assertion.tool_name}"{extra})'
+    elif hasattr(assertion, "expected_sequence"):
+        label = f"{name}({assertion.expected_sequence})"
+    elif hasattr(assertion, "max_ms"):
+        label = f"{name}({int(assertion.max_ms)})"
+    elif hasattr(assertion, "max_usd"):
+        label = f"{name}({assertion.max_usd})"
+    elif hasattr(assertion, "max_tokens"):
+        label = f"{name}({assertion.max_tokens})"
+    elif hasattr(assertion, "model_class"):
+        label = f"{name}({assertion.model_class.__name__})"
+    elif hasattr(assertion, "schema") and getattr(assertion, "schema", None):
+        label = f"{name}(schema=...)"
+    elif hasattr(assertion, "pattern"):
+        label = f'{name}("{assertion.pattern}")'
+
+    if result.passed:
+        detail = ""
+        if result.actual:
+            detail = f" — {result.actual}"
+        return f"  \u2713 {label}{detail}"
+    else:
+        return f"  \u2717 {label} — {result.reason}"
+
+
+def _format_response_line(output: LLMOutput) -> str:
+    """Format the AI response for terminal display."""
+    if output.tool_calls:
+        parts = []
+        for tc in output.tool_calls:
+            name = tc.get("name", "unknown")
+            args = tc.get("arguments", {})
+            if isinstance(args, dict):
+                first_val = next(iter(args.values()), "...")
+                if isinstance(first_val, str) and len(first_val) > 30:
+                    first_val = first_val[:30] + "..."
+                parts.append(f'{name}("{first_val}")')
+            else:
+                parts.append(f"{name}(...)")
+        return "  AI: " + " \u2192 ".join(parts)
+    content = output.content.strip()
+    if len(content) > 80:
+        content = content[:77] + "..."
+    return f'  AI: "{content}"'
 
 
 # ─────────────────────────────────────────────
@@ -507,6 +572,35 @@ def llm_test(
                             )
                         )
 
+                # Re-run assertions to collect ALL results for display
+                all_assertion_results: list[tuple] = []
+                for assertion in assertions:
+                    try:
+                        if isinstance(assertion, AgentAssertion):
+                            r = assertion.check_trace(agent_trace)
+                        else:
+                            r = assertion.check(llm_output)
+                        all_assertion_results.append((assertion, r))
+                    except Exception:
+                        pass
+
+                # Store verbose output lines for pytest hook
+                _current_test_lines.clear()
+                _current_test_lines.append(_format_response_line(llm_output))
+                for a, r in all_assertion_results:
+                    _current_test_lines.append(_format_assertion_line(a, r))
+
+                # Collect for summary
+                _test_results.append(
+                    {
+                        "passed": not failures,
+                        "assertions_total": len(assertions),
+                        "assertions_passed": len(assertions) - len(failures),
+                        "cost": llm_output.cost_estimate_usd,
+                        "latency_ms": llm_output.latency_ms,
+                    }
+                )
+
                 if failures:
                     if attempt < retries:
                         # Still have retries left — try again
@@ -517,7 +611,7 @@ def llm_test(
                     if retries > 0:
                         failure_messages.append(f"\n  ! Failed after {retries + 1} attempts")
                     for f in failures:
-                        msg = f"\n  x [{f.severity.value.upper()}] {f.assertion_name}"
+                        msg = f"\n  \u2717 [{f.severity.value.upper()}] {f.assertion_name}"
                         if f.reason:
                             msg += f"\n    Reason: {f.reason}"
                         if f.expected:
@@ -531,9 +625,10 @@ def llm_test(
                         failure_messages.append(msg)
 
                     failure_messages.append(
-                        f"\n  i  Latency: {llm_output.latency_ms:.0f}ms | "
-                        f"Tokens: {llm_output.input_tokens} up {llm_output.output_tokens} down | "
-                        f"Est. cost: ${llm_output.cost_estimate_usd:.5f}"
+                        f"\n  Latency: {llm_output.latency_ms:.0f}ms | "
+                        f"Tokens: {llm_output.input_tokens}\u2191 "
+                        f"{llm_output.output_tokens}\u2193 | "
+                        f"Cost: ${llm_output.cost_estimate_usd:.6f}"
                     )
 
                     pytest.fail("LLM assertions failed:" + "".join(failure_messages))
@@ -565,19 +660,41 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "llm_tags(*tags): tag an LLM test for filtering")
 
 
-def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:
-    """
-    Add a summary section to pytest output.
-    Shows: total LLM calls, total cost, total tokens.
-    """
-    llm_reports = [
-        r
-        for r in terminalreporter.stats.get("failed", []) + terminalreporter.stats.get("passed", [])
-        if r.keywords.get("llmtest")
-    ]
+@pytest.hookimpl(trylast=True)
+def pytest_runtest_logreport(report) -> None:
+    """Print llmtest assertion lines after each test."""
+    if report.when == "call" and _current_test_lines:
+        # Use __stdout__ to bypass pytest capture
+        import sys
 
-    if not llm_reports:
+        writer = sys.__stdout__
+        writer.write("\n")
+        for line in _current_test_lines:
+            writer.write(line + "\n")
+        writer.flush()
+        _current_test_lines.clear()
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:
+    """Add a summary section with cost, latency, and assertion stats."""
+    if not _test_results:
         return
 
+    passed = sum(1 for r in _test_results if r["passed"])
+    failed = len(_test_results) - passed
+    total_assertions = sum(r["assertions_total"] for r in _test_results)
+    passed_assertions = sum(r["assertions_passed"] for r in _test_results)
+    total_cost = sum(r["cost"] for r in _test_results)
+    latencies = [r["latency_ms"] for r in _test_results]
+    avg_latency = sum(latencies) / len(latencies) if latencies else 0
+
     terminalreporter.write_sep("=", "llmtest summary")
-    terminalreporter.write_line(f"  LLM tests run: {len(llm_reports)}")
+
+    if failed:
+        terminalreporter.write_line(f"  LLM tests: {passed} passed, {failed} failed")
+    else:
+        terminalreporter.write_line(f"  LLM tests: {passed} passed")
+
+    terminalreporter.write_line(f"  Assertions: {passed_assertions}/{total_assertions} passed")
+    terminalreporter.write_line(f"  Total cost: ${total_cost:.6f}")
+    terminalreporter.write_line(f"  Avg latency: {avg_latency:.0f}ms")
