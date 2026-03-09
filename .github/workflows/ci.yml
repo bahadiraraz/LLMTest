@@ -68,24 +68,16 @@ jobs:
         run: |
           pip install -e packages/core
           pip install -e packages/pytest-plugin
-          pip install pytest pytest-asyncio
-
-      - name: Install coverage
-        run: pip install coverage
+          pip install pytest pytest-asyncio pytest-cov
 
       - name: Run unit tests with coverage
-        run: coverage run -m pytest tests/ -v --tb=short -k "not real_anthropic and not pydantic_ai_integration and not pytest_plugin and not decorator_real and not output_format"
-
-      - name: Generate coverage report
-        if: matrix.python-version == '3.12'
-        run: |
-          coverage xml
-          coverage report
+        run: pytest tests/ -v --tb=short --cov --cov-branch --cov-report=xml -k "not real_anthropic and not pydantic_ai_integration and not pytest_plugin and not decorator_real and not output_format"
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
           fail_ci_if_error: false
 
