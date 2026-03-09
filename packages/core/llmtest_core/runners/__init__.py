@@ -21,6 +21,8 @@ from pydantic import BaseModel, Field
 
 from llmtest_core.assertions import AgentAssertion
 from llmtest_core.models import (
+    AgentStep,
+    AgentTrace,
     AssertionResult,
     LLMInput,
     LLMOutput,
@@ -30,6 +32,36 @@ from llmtest_core.models import (
     TestSuiteResult,
 )
 from llmtest_core.providers import BaseProvider, ProviderRegistry
+
+
+def _build_trace_from_output(output: LLMOutput) -> AgentTrace:
+    """Build an AgentTrace from LLMOutput.tool_calls for agent assertion support."""
+    steps = []
+    for i, tc in enumerate(output.tool_calls):
+        tool_name = tc.get("name") or tc.get("function", {}).get("name", "unknown")
+        steps.append(
+            AgentStep(
+                step_number=i + 1,
+                tool_name=tool_name,
+                tool_input=tc.get("arguments") or tc.get("function", {}).get("arguments"),
+            )
+        )
+
+    sequence = [s.tool_name for s in steps if s.tool_name]
+    loop_detected = False
+    if len(sequence) >= 3:
+        for i in range(len(sequence) - 2):
+            if sequence[i] == sequence[i + 1] == sequence[i + 2]:
+                loop_detected = True
+                break
+
+    return AgentTrace(
+        steps=steps,
+        final_output=output.content,
+        total_llm_calls=1,
+        total_tool_calls=len(steps),
+        loop_detected=loop_detected,
+    )
 
 
 class TestCase(BaseModel):
@@ -160,12 +192,16 @@ class TestRunner:
             return self._error_result(tc, traceback.format_exc(), start)
 
         # Run assertions
+        has_agent_assertions = any(isinstance(a, AgentAssertion) for a in tc.assertions)
+        agent_trace = _build_trace_from_output(llm_output) if has_agent_assertions else None
+
         assertion_results: list[AssertionResult] = []
         for assertion in tc.assertions:
             try:
                 if isinstance(assertion, AgentAssertion):
-                    continue
-                result = assertion.check(llm_output)
+                    result = assertion.check_trace(agent_trace)
+                else:
+                    result = assertion.check(llm_output)
                 assertion_results.append(result)
             except Exception as e:
                 assertion_results.append(

@@ -188,11 +188,17 @@ class expect:
 
         return NoLoopDetected()
 
+    # Alias for discoverability
+    no_loop_detected = no_loop
+
     @staticmethod
     def tool_order(sequence: list[str]):
         from llmtest_core.assertions import ToolCallOrder
 
         return ToolCallOrder(sequence)
+
+    # Alias for discoverability
+    tool_call_order = tool_order
 
     @staticmethod
     def starts_with(prefix: str, case_sensitive: bool = True, severity: Severity = Severity.HIGH):
@@ -290,7 +296,7 @@ class expect:
         )
 
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
     "expect",
     "llm_test",

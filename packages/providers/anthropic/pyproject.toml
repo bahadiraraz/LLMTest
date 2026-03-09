@@ -1,6 +1,6 @@
 [project]
 name = "llmtest-anthropic"
-version = "0.1.0"
+version = "0.2.0"
 description = "Anthropic provider for llmtest"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -9,6 +9,12 @@ dependencies = [
     "llmtest-core>=0.1.0",
     "anthropic>=0.30",
 ]
+
+[project.entry-points."llmtest.providers"]
+anthropic = "provider:AnthropicProvider"
+
+[tool.uv.sources]
+llmtest-core = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

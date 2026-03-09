@@ -1,6 +1,6 @@
 [project]
 name = "llmtest-cli"
-version = "0.1.0"
+version = "0.2.0"
 description = "CLI for llmtest"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -8,6 +8,9 @@ authors = [{ name = "Bahadır Araz", email = "bahadiraraz@protonmail.com" }]
 dependencies = [
     "llmtest-core>=0.1.0",
 ]
+
+[tool.uv.sources]
+llmtest-core = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

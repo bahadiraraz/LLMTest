@@ -1,6 +1,6 @@
 [project]
 name = "llmtest-pytest"
-version = "0.1.0"
+version = "0.2.0"
 description = "pytest plugin for llmtest"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -9,6 +9,9 @@ dependencies = [
     "llmtest-core>=0.1.0",
     "pytest>=7.0",
 ]
+
+[tool.uv.sources]
+llmtest-core = { workspace = true }
 
 [project.entry-points."pytest11"]
 llmtest = "llmtest_pytest.plugin"

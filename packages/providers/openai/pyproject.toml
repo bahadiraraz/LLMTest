@@ -1,6 +1,6 @@
 [project]
 name = "llmtest-openai"
-version = "0.1.0"
+version = "0.2.0"
 description = "OpenAI provider for llmtest"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -9,6 +9,12 @@ dependencies = [
     "llmtest-core>=0.1.0",
     "openai>=1.0",
 ]
+
+[project.entry-points."llmtest.providers"]
+openai = "provider:OpenAIProvider"
+
+[tool.uv.sources]
+llmtest-core = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

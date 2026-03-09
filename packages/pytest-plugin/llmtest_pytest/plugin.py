@@ -21,9 +21,43 @@ from collections.abc import Callable
 
 import pytest
 from llmtest_core.assertions import AgentAssertion, BaseAssertion
-from llmtest_core.models import AssertionResult, LLMInput, LLMOutput, Severity
+from llmtest_core.models import AgentTrace, AssertionResult, LLMInput, LLMOutput, Severity
 from llmtest_core.providers import BaseProvider, ProviderRegistry
 from llmtest_core.runners import RunConfig, TestRunner
+
+
+def _build_trace_from_output(output: LLMOutput) -> AgentTrace:
+    """Build an AgentTrace from LLMOutput.tool_calls for agent assertion support."""
+    from llmtest_core.models import AgentStep
+
+    steps = []
+    for i, tc in enumerate(output.tool_calls):
+        tool_name = tc.get("name") or tc.get("function", {}).get("name", "unknown")
+        steps.append(
+            AgentStep(
+                step_number=i + 1,
+                tool_name=tool_name,
+                tool_input=tc.get("arguments") or tc.get("function", {}).get("arguments"),
+            )
+        )
+
+    # Detect loops: same tool called 3+ times consecutively
+    sequence = [s.tool_name for s in steps if s.tool_name]
+    loop_detected = False
+    if len(sequence) >= 3:
+        for i in range(len(sequence) - 2):
+            if sequence[i] == sequence[i + 1] == sequence[i + 2]:
+                loop_detected = True
+                break
+
+    return AgentTrace(
+        steps=steps,
+        final_output=output.content,
+        total_llm_calls=1,
+        total_tool_calls=len(steps),
+        loop_detected=loop_detected,
+    )
+
 
 # ─────────────────────────────────────────────
 # INTERNAL: Synchronous provider call
@@ -189,6 +223,101 @@ def llm(request):
 
 
 # ─────────────────────────────────────────────
+# INTERNAL: Single run executor for multi-run mode
+# ─────────────────────────────────────────────
+
+
+def _execute_single_run(
+    fn: Callable,
+    args: tuple,
+    kwargs: dict,
+    assertions: tuple,
+    provider_name: str | None,
+    default_model: str | None,
+    default_system_prompt: str | None,
+    default_temperature: float | None,
+    default_max_tokens: int | None,
+) -> list[AssertionResult] | None:
+    """Execute a single test run. Returns None if passed, list of failures if failed."""
+    provider_instance = ProviderRegistry.get(provider_name or "openai")
+    captured_outputs: list[LLMOutput] = []
+
+    def llm(
+        prompt: str | LLMInput,
+        *,
+        model: str | None = None,
+        system_prompt: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        tools: list[dict] | None = None,
+        response_format: dict | type | None = None,
+    ) -> LLMOutput:
+        if isinstance(prompt, LLMInput):
+            llm_input = prompt
+        else:
+            llm_input = LLMInput.simple(
+                prompt,
+                system_prompt=system_prompt or default_system_prompt,
+                model=model or default_model,
+                temperature=temperature if temperature is not None else default_temperature,
+                max_tokens=max_tokens or default_max_tokens,
+                tools=tools,
+                response_format=response_format,
+            )
+        output = _call_provider_sync(provider_instance, llm_input)
+        captured_outputs.append(output)
+        return output
+
+    try:
+        fn(llm, *args, **kwargs)
+    except Exception:
+        return [
+            AssertionResult(
+                assertion_name="test_body",
+                passed=False,
+                severity=Severity.HIGH,
+                reason="Test body raised an exception",
+            )
+        ]
+
+    if not captured_outputs:
+        return [
+            AssertionResult(
+                assertion_name="test_body",
+                passed=False,
+                severity=Severity.HIGH,
+                reason="Test function did not call llm()",
+            )
+        ]
+
+    llm_output = captured_outputs[-1]
+
+    has_agent_assertions = any(isinstance(a, AgentAssertion) for a in assertions)
+    agent_trace = _build_trace_from_output(llm_output) if has_agent_assertions else None
+
+    failures: list[AssertionResult] = []
+    for assertion in assertions:
+        try:
+            if isinstance(assertion, AgentAssertion):
+                result = assertion.check_trace(agent_trace)
+            else:
+                result = assertion.check(llm_output)
+            if not result.passed:
+                failures.append(result)
+        except Exception as e:
+            failures.append(
+                AssertionResult(
+                    assertion_name=getattr(assertion, "name", "unknown"),
+                    passed=False,
+                    severity=Severity.HIGH,
+                    reason=f"Assertion raised: {e}",
+                )
+            )
+
+    return failures if failures else None
+
+
+# ─────────────────────────────────────────────
 # DECORATOR API — assertions checked automatically
 # ─────────────────────────────────────────────
 
@@ -203,6 +332,8 @@ def llm_test(
     tags: list[str] = None,
     retries: int = 0,
     retry_delay: float = 1.0,
+    runs: int = 1,
+    min_pass_rate: float = 1.0,
 ):
     """
     Decorator that turns a test function into an llmtest case.
@@ -210,8 +341,10 @@ def llm_test(
     Assertions are checked automatically after the function returns.
 
     Retry: If retries > 0, the entire test (LLM call + assertions) is retried
-    up to `retries` times when an assertion fails. LLMs are non-deterministic —
-    a failed assertion may pass on the next attempt.
+    up to `retries` times when an assertion fails.
+
+    Runs: If runs > 1, the test is executed N times and passes if at least
+    min_pass_rate fraction of runs succeed. Useful for non-deterministic outputs.
 
     Usage:
         @llm_test(
@@ -227,6 +360,16 @@ def llm_test(
         def test_capital(llm):
             output = llm("What is the capital of France?")
             assert "Paris" in output.content
+
+        # Statistical testing — pass if 8/10 runs succeed
+        @llm_test(
+            expect.contains("Paris"),
+            model="gpt-5-mini",
+            runs=10,
+            min_pass_rate=0.8,
+        )
+        def test_capital_reliable(llm):
+            llm("What is the capital of France?")
     """
     default_model = model
     default_system_prompt = system_prompt
@@ -241,6 +384,51 @@ def llm_test(
             # the decorator provides its own llm callable
             kwargs.pop("llm", None)
 
+            # Multi-run mode: run N times, check pass rate
+            if runs > 1:
+                passed_count = 0
+                last_failures = []
+                for run_idx in range(runs):
+                    run_failures = _execute_single_run(
+                        fn,
+                        args,
+                        kwargs,
+                        assertions,
+                        provider,
+                        default_model,
+                        default_system_prompt,
+                        default_temperature,
+                        default_max_tokens,
+                    )
+                    if run_failures is None:
+                        passed_count += 1
+                    else:
+                        last_failures = run_failures
+
+                pass_rate = passed_count / runs
+                if pass_rate < min_pass_rate:
+                    needed = int(min_pass_rate * runs)
+                    msg = (
+                        f"\n  ! Pass rate {passed_count}/{runs} "
+                        f"({pass_rate:.0%}) below threshold "
+                        f"({min_pass_rate:.0%}, need {needed}/{runs})"
+                    )
+                    for f in last_failures:
+                        msg += f"\n  x [{f.severity.value.upper()}] {f.assertion_name}"
+                        if f.reason:
+                            msg += f"\n    Last failure: {f.reason}"
+                    pytest.fail("LLM assertions failed:" + msg)
+
+                if passed_count < runs:
+                    import warnings
+
+                    warnings.warn(
+                        f"llmtest: {passed_count}/{runs} runs passed ({pass_rate:.0%})",
+                        stacklevel=2,
+                    )
+                return
+
+            # Single-run mode with optional retries
             for attempt in range(retries + 1):
                 if attempt > 0 and retry_delay > 0:
                     time.sleep(retry_delay)
@@ -296,12 +484,17 @@ def llm_test(
                 # Run automatic assertions on the last output
                 llm_output = captured_outputs[-1]
 
+                # Build agent trace from tool_calls if any agent assertions exist
+                has_agent_assertions = any(isinstance(a, AgentAssertion) for a in assertions)
+                agent_trace = _build_trace_from_output(llm_output) if has_agent_assertions else None
+
                 failures: list[AssertionResult] = []
                 for assertion in assertions:
                     try:
                         if isinstance(assertion, AgentAssertion):
-                            continue  # Agent assertions need a trace
-                        result = assertion.check(llm_output)
+                            result = assertion.check_trace(agent_trace)
+                        else:
+                            result = assertion.check(llm_output)
                         if not result.passed:
                             failures.append(result)
                     except Exception as e:

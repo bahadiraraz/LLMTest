@@ -19,9 +19,17 @@ members = [
     "packages/providers/ollama",
 ]
 
+[tool.uv.sources]
+llmtest-core = { workspace = true }
+llmtest-pytest = { workspace = true }
+llmtest-cli = { workspace = true }
+llmtest-openai = { workspace = true }
+llmtest-anthropic = { workspace = true }
+llmtest-ollama = { workspace = true }
+
 [project]
 name = "pytest-llmtest"
-version = "0.1.0"
+version = "0.2.0"
 description = "The pytest for LLMs — fast, Pydantic-based assertions for AI applications"
 readme = "README.md"
 license = { text = "MIT" }
