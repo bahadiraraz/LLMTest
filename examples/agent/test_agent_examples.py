@@ -5,7 +5,7 @@ Testing that your LLM calls the RIGHT tools in the RIGHT order
 and doesn't get stuck in a loop.
 """
 
-from llmtest import LLMInput, expect, llm_test
+from assertllm import LLMInput, expect, llm_test
 
 # Tool definitions
 SEARCH_TOOL = {

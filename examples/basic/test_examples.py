@@ -7,7 +7,7 @@ These tests should feel OBVIOUS to anyone who's used pytest.
 
 import pytest
 
-from llmtest import expect, llm_test
+from assertllm import expect, llm_test
 
 # ─────────────────────────────────────────────
 # EXAMPLE 1: The simplest possible test (decorator)

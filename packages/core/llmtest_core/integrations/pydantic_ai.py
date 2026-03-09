@@ -8,8 +8,8 @@ Install: pip install pydantic-ai
 
 Usage:
     from pydantic_ai import Agent
-    from llmtest.integrations.pydantic_ai import PydanticAIAdapter
-    from llmtest import expect
+    from assertllm.integrations.pydantic_ai import PydanticAIAdapter
+    from assertllm import expect
 
     agent = Agent('openai:gpt-5-mini', system_prompt='Be concise.')
     adapter = PydanticAIAdapter(agent)
@@ -46,8 +46,8 @@ class PydanticAIAdapter:
 
     Example:
         from pydantic_ai import Agent
-        from llmtest.integrations.pydantic_ai import PydanticAIAdapter
-        from llmtest import expect
+        from assertllm.integrations.pydantic_ai import PydanticAIAdapter
+        from assertllm import expect
 
         agent = Agent('openai:gpt-5-mini', system_prompt='Be concise.')
         adapter = PydanticAIAdapter(agent)

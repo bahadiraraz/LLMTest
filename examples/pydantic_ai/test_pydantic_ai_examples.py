@@ -12,9 +12,9 @@ from dataclasses import dataclass
 
 from llmtest_core.integrations.pydantic_ai import PydanticAIAdapter
 from pydantic import BaseModel
-from pydantic_ai import Agent, RunContext
+from pydantic_ai import Agent, RunContext  # noqa: I001
 
-from llmtest import expect
+from assertllm import expect
 
 # ─────────────────────────────────────────────
 # EXAMPLE 1: Basic agent — text output

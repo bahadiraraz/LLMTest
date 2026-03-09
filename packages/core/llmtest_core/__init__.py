@@ -4,11 +4,11 @@ llmtest public API.
 Design: Single import surface.
 Users should only ever need:
 
-    from llmtest import expect, LLMTest, config
+    from assertllm import expect, LLMTest, config
 
 NOT:
-    from llmtest.core.assertions.text import Contains
-    from llmtest.core.runners.async_runner import AsyncTestRunner
+    from assertllm.core.assertions.text import Contains
+    from assertllm.core.runners.async_runner import AsyncTestRunner
 
 The internal structure can change freely as long as this file stays stable.
 """

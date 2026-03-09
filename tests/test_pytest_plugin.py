@@ -10,7 +10,7 @@ import json
 import pytest
 from pydantic import BaseModel
 
-from llmtest import LLMInput, expect, llm_test
+from assertllm import LLMInput, expect, llm_test
 
 MODEL = "claude-haiku-4-5-20251001"
 PROVIDER = "anthropic"
