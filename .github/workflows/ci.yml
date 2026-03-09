@@ -83,7 +83,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
-          slug: bahadiraraz/llmtest
+          slug: bahadiraraz/LLMTest
           fail_ci_if_error: false
           verbose: true
 
