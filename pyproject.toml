@@ -15,7 +15,7 @@ llmtest-pytest = { workspace = true }
 
 [project]
 name = "assertllm"
-version = "0.2.0"
+version = "0.3.0"
 description = "The pytest for LLMs — fast, Pydantic-based assertions for AI applications"
 readme = "README.md"
 license = { text = "MIT" }

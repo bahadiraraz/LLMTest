@@ -40,4 +40,4 @@ def llm_test(*args, **kwargs):
     return _llm_test(*args, **kwargs)
 
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
