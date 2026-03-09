@@ -75,38 +75,28 @@ class ProviderRegistry:
             raise ValueError(
                 f"Provider '{name}' not found. "
                 f"Available: {list(cls._providers.keys())}. "
-                f"Install it with: pip install llmtest-{name}"
+                f"Install it with: pip install llm-test[{name}]"
             )
         return cls._providers[name]
 
     @classmethod
     def load_plugins(cls) -> None:
-        """Auto-discover providers via known package paths."""
-        import importlib.util
-        import pathlib
-
-        # Find provider packages relative to this file's location
-        providers_dir = pathlib.Path(__file__).parent.parent.parent.parent / "providers"
+        """Auto-discover providers via lazy import."""
         _known_providers = {
-            "openai": ("openai", "OpenAIProvider"),
-            "anthropic": ("anthropic", "AnthropicProvider"),
-            "ollama": ("ollama", "OllamaProvider"),
+            "openai": ("llmtest_core.providers._openai", "OpenAIProvider"),
+            "anthropic": ("llmtest_core.providers._anthropic", "AnthropicProvider"),
+            "ollama": ("llmtest_core.providers._ollama", "OllamaProvider"),
         }
-        for name, (subdir, class_name) in _known_providers.items():
+        for name, (module_path, class_name) in _known_providers.items():
             if name in cls._providers:
                 continue
-            provider_file = providers_dir / subdir / "provider.py"
-            if not provider_file.exists():
-                continue
             try:
-                spec = importlib.util.spec_from_file_location(
-                    f"llmtest_provider_{name}", provider_file
-                )
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
+                import importlib
+
+                mod = importlib.import_module(module_path)
                 provider_cls = getattr(mod, class_name)
                 cls.register(provider_cls())
-            except Exception:
+            except (ImportError, Exception):
                 pass
 
     @classmethod

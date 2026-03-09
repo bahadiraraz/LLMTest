@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://badge.fury.io/py/pytest-llmtest"><img src="https://badge.fury.io/py/pytest-llmtest.svg" alt="PyPI version" /></a>
+  <a href="https://badge.fury.io/py/llm-test"><img src="https://badge.fury.io/py/llm-test.svg" alt="PyPI version" /></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
 </p>
@@ -17,7 +17,7 @@
 ## Quick Start
 
 ```bash
-pip install pytest-llmtest[anthropic]
+pip install llm-test[anthropic]
 ```
 
 ```python
@@ -66,10 +66,10 @@ test_capitals.py::test_capital
 ## Installation
 
 ```bash
-pip install pytest-llmtest[anthropic]    # Anthropic
-pip install pytest-llmtest[openai]       # OpenAI
-pip install pytest-llmtest[ollama]       # Ollama (local)
-pip install pytest-llmtest[all]          # Everything
+pip install llm-test[anthropic]    # Anthropic
+pip install llm-test[openai]       # OpenAI
+pip install llm-test[ollama]       # Ollama (local)
+pip install llm-test[all]          # Everything
 ```
 
 ## Documentation

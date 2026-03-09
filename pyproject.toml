@@ -1,34 +1,20 @@
-# llm-test — Root pyproject.toml (monorepo workspace)
-# Built on Pydantic for type safety and validation.
+# llm-test — Root pyproject.toml
+# Single package with optional extras for providers.
 #
-# Structure:
-# - llmtest-core: pydantic models + assertions (core dependency: pydantic)
-# - llmtest-pytest: depends on core + pytest
-# - llmtest-cli: depends on core
-# - llmtest-openai: depends on core + openai
-# - llmtest-anthropic: depends on core + anthropic
-# - llmtest-ollama: depends on core + httpx
+# Install: pip install llm-test[anthropic]
 
 [tool.uv.workspace]
 members = [
     "packages/core",
     "packages/pytest-plugin",
-    "packages/cli",
-    "packages/providers/openai",
-    "packages/providers/anthropic",
-    "packages/providers/ollama",
 ]
 
 [tool.uv.sources]
 llmtest-core = { workspace = true }
 llmtest-pytest = { workspace = true }
-llmtest-cli = { workspace = true }
-llmtest-openai = { workspace = true }
-llmtest-anthropic = { workspace = true }
-llmtest-ollama = { workspace = true }
 
 [project]
-name = "pytest-llmtest"
+name = "llm-test"
 version = "0.2.0"
 description = "The pytest for LLMs — fast, Pydantic-based assertions for AI applications"
 readme = "README.md"
@@ -57,17 +43,14 @@ classifiers = [
 
 dependencies = [
     "pydantic>=2.0",
-    "llmtest-core",
-    "llmtest-pytest",
-    "llmtest-cli",
+    "pytest>=7.0",
 ]
 
 [project.optional-dependencies]
-openai = ["llmtest-openai"]
-anthropic = ["llmtest-anthropic"]
-ollama = ["llmtest-ollama"]
-pydantic-ai = ["pydantic-ai>=1.0"]
-all = ["pytest-llmtest[openai,anthropic,ollama,pydantic-ai]"]
+openai = ["openai>=1.0"]
+anthropic = ["anthropic>=0.30"]
+ollama = ["httpx>=0.25"]
+all = ["llm-test[openai,anthropic,ollama]"]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
@@ -76,15 +59,15 @@ dev = [
     "coverage>=7.0",
 ]
 
+[project.entry-points."pytest11"]
+llmtest = "llmtest_pytest.plugin"
+
 [project.urls]
 Homepage = "https://llmtest.dev"
 Documentation = "https://docs.llmtest.dev"
 Repository = "https://github.com/bahadiraraz/llmtest"
 "Bug Tracker" = "https://github.com/bahadiraraz/llmtest/issues"
 Changelog = "https://github.com/bahadiraraz/llmtest/releases"
-
-[project.scripts]
-llmtest = "llmtest_cli.main:app"
 
 # ─────────────────────────────────────────────
 # Build system
@@ -95,10 +78,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["llmtest"]
+packages = ["llmtest", "packages/core/llmtest_core", "packages/pytest-plugin/llmtest_pytest"]
 
 [tool.hatch.build.targets.sdist]
-include = ["llmtest/", "README.md", "LICENSE", "pyproject.toml"]
+include = ["llmtest/", "packages/core/llmtest_core/", "packages/pytest-plugin/llmtest_pytest/", "README.md", "LICENSE", "pyproject.toml"]
 
 # ─────────────────────────────────────────────
 # Dev tooling

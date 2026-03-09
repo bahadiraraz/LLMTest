@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write  # trusted publishing
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -25,32 +25,12 @@ jobs:
       - name: Install build tools
         run: pip install build twine
 
-      # Build all packages in dependency order
-      - name: Build llmtest-core
-        run: python -m build packages/core -o dist/
-
-      - name: Build llmtest-pytest
-        run: python -m build packages/pytest-plugin -o dist/
-
-      - name: Build llmtest-cli
-        run: python -m build packages/cli -o dist/
-
-      - name: Build llmtest-openai
-        run: python -m build packages/providers/openai -o dist/
-
-      - name: Build llmtest-anthropic
-        run: python -m build packages/providers/anthropic -o dist/
-
-      - name: Build llmtest-ollama
-        run: python -m build packages/providers/ollama -o dist/
-
-      - name: Build llmtest (root)
+      - name: Build package
         run: python -m build . -o dist/
 
       - name: Check distributions
         run: twine check dist/*
 
-      # Publish with trusted publishing (no token needed)
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
