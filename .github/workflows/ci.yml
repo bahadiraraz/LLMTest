@@ -70,8 +70,24 @@ jobs:
           pip install -e packages/pytest-plugin
           pip install pytest pytest-asyncio
 
-      - name: Run unit tests
-        run: pytest tests/ -v --tb=short -k "not real_anthropic and not pydantic_ai_integration and not pytest_plugin and not decorator_real and not output_format"
+      - name: Install coverage
+        run: pip install coverage
+
+      - name: Run unit tests with coverage
+        run: coverage run -m pytest tests/ -v --tb=short -k "not real_anthropic and not pydantic_ai_integration and not pytest_plugin and not decorator_real and not output_format"
+
+      - name: Generate coverage report
+        if: matrix.python-version == '3.12'
+        run: |
+          coverage xml
+          coverage report
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
 
   # ─── Integration tests (requires API keys) ───
   test-integration:

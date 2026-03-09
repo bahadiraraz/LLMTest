@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/bahadiraraz/llmtest/actions/workflows/ci.yml"><img src="https://github.com/bahadiraraz/llmtest/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://codecov.io/gh/bahadiraraz/llmtest"><img src="https://codecov.io/gh/bahadiraraz/llmtest/branch/main/graph/badge.svg" alt="Coverage" /></a>
   <a href="https://pypi.org/project/assertllm/"><img src="https://img.shields.io/pypi/v/assertllm.svg" alt="PyPI version" /></a>
   <a href="https://pypi.org/project/assertllm/"><img src="https://img.shields.io/pypi/pyversions/assertllm.svg" alt="Python versions" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT" /></a>
