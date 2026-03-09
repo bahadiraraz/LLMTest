@@ -73,18 +73,12 @@ jobs:
       - name: Run unit tests with coverage
         run: pytest tests/ -v --tb=short --cov=packages/core/llmtest_core --cov-branch --cov-report=xml -k "not real_anthropic and not pydantic_ai_integration and not pytest_plugin and not decorator_real and not output_format"
 
-      - name: Debug coverage file
-        if: matrix.python-version == '3.12'
-        run: head -50 coverage.xml
-
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          fail_ci_if_error: false
-          verbose: true
+        run: |
+          curl -Os https://cli.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov --verbose upload-process --fail-on-error -t ${{ secrets.CODECOV_TOKEN }} -n 'unit-tests'-${{ github.run_id }} -F unit -f coverage.xml
 
   # ─── Integration tests (requires API keys) ───
   test-integration:
