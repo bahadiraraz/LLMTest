@@ -1,7 +1,7 @@
 # assertllm — Root pyproject.toml
 # Single package with optional extras for providers.
 #
-# Install: pip install assertllm[anthropic]
+# Install: pip install "assertllm[anthropic]"
 
 [tool.uv.workspace]
 members = [

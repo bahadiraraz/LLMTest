@@ -1,7 +1,7 @@
 """
 Anthropic provider.
 
-Install: pip install assertllm[anthropic]
+Install: pip install "assertllm[anthropic]"
 
 Design: Same pattern as OpenAI provider — lazy import, exact pricing.
 """

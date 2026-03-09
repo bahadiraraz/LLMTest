@@ -1,7 +1,7 @@
 """
 OpenAI provider.
 
-Install: pip install assertllm[openai]
+Install: pip install "assertllm[openai]"
 
 Design: Lazy import of openai SDK.
 If someone doesn't use OpenAI, they pay zero import cost.

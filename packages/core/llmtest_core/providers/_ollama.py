@@ -1,7 +1,7 @@
 """
 Ollama provider — run LLM tests locally, no API key needed.
 
-Install: pip install assertllm[ollama]
+Install: pip install "assertllm[ollama]"
 
 Requires Ollama running locally: https://ollama.ai
 Default endpoint: http://localhost:11434

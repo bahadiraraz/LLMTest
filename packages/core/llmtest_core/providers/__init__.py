@@ -75,7 +75,7 @@ class ProviderRegistry:
             raise ValueError(
                 f"Provider '{name}' not found. "
                 f"Available: {list(cls._providers.keys())}. "
-                f"Install it with: pip install assertllm[{name}]"
+                f'Install it with: pip install "assertllm[{name}]"'
             )
         return cls._providers[name]
 

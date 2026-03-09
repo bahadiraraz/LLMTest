@@ -19,7 +19,7 @@
 ## Quick Start
 
 ```bash
-pip install assertllm[anthropic]
+pip install "assertllm[anthropic]"
 ```
 
 ```python
@@ -68,10 +68,10 @@ test_capitals.py::test_capital
 ## Installation
 
 ```bash
-pip install assertllm[anthropic]    # Anthropic
-pip install assertllm[openai]       # OpenAI
-pip install assertllm[ollama]       # Ollama (local)
-pip install assertllm[all]          # Everything
+pip install "assertllm[anthropic]"    # Anthropic
+pip install "assertllm[openai]"       # OpenAI
+pip install "assertllm[ollama]"       # Ollama (local)
+pip install "assertllm[all]"          # Everything
 ```
 
 ## Documentation
