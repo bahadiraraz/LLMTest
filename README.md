@@ -1,15 +1,15 @@
 <p align="center">
-  <img src=".github/icon.svg" alt="LLMTest" width="80" height="80" />
+  <img src=".github/icon.svg" alt="assertllm" width="80" height="80" />
 </p>
 
-<h1 align="center">llmtest</h1>
+<h1 align="center">assertllm</h1>
 
 <p align="center">
   <strong>The pytest for LLMs.</strong> Test your AI outputs like you test your code.
 </p>
 
 <p align="center">
-  <a href="https://badge.fury.io/py/llm-test"><img src="https://badge.fury.io/py/llm-test.svg" alt="PyPI version" /></a>
+  <a href="https://badge.fury.io/py/assertllm"><img src="https://badge.fury.io/py/assertllm.svg" alt="PyPI version" /></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
 </p>
@@ -17,11 +17,11 @@
 ## Quick Start
 
 ```bash
-pip install llm-test[anthropic]
+pip install assertllm[anthropic]
 ```
 
 ```python
-from llmtest import expect, llm_test
+from assertllm import expect, llm_test
 
 @llm_test(
     expect.contains("Paris"),
@@ -45,7 +45,7 @@ test_capitals.py::test_capital
   ✓ cost_under(0.001) — $0.000023
   PASSED
 
-────────── llmtest summary ──────────
+────────── assertllm summary ──────────
   LLM tests: 1 passed
   Assertions: 3/3 passed
   Total cost: $0.000023
@@ -66,15 +66,15 @@ test_capitals.py::test_capital
 ## Installation
 
 ```bash
-pip install llm-test[anthropic]    # Anthropic
-pip install llm-test[openai]       # OpenAI
-pip install llm-test[ollama]       # Ollama (local)
-pip install llm-test[all]          # Everything
+pip install assertllm[anthropic]    # Anthropic
+pip install assertllm[openai]       # OpenAI
+pip install assertllm[ollama]       # Ollama (local)
+pip install assertllm[all]          # Everything
 ```
 
 ## Documentation
 
-Full docs at **[docs.llmtest.dev](https://docs.llmtest.dev)**
+Full docs at **[docs.assertllm.dev](https://docs.assertllm.dev)**
 
 ## Contributing
 

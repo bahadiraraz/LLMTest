@@ -1,8 +1,8 @@
 """
-llmtest — public API.
+assertllm — public API.
 
 Single import surface:
-    from llmtest import expect, llm_test, LLMInput, LLMOutput
+    from assertllm import expect, llm_test, LLMInput, LLMOutput
 """
 
 # Re-export everything from llmtest_core

@@ -688,7 +688,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:
     latencies = [r["latency_ms"] for r in _test_results]
     avg_latency = sum(latencies) / len(latencies) if latencies else 0
 
-    terminalreporter.write_sep("=", "llmtest summary")
+    terminalreporter.write_sep("=", "assertllm summary")
 
     if failed:
         terminalreporter.write_line(f"  LLM tests: {passed} passed, {failed} failed")

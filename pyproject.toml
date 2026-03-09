@@ -1,7 +1,7 @@
-# llm-test — Root pyproject.toml
+# assertllm — Root pyproject.toml
 # Single package with optional extras for providers.
 #
-# Install: pip install llm-test[anthropic]
+# Install: pip install assertllm[anthropic]
 
 [tool.uv.workspace]
 members = [
@@ -14,7 +14,7 @@ llmtest-core = { workspace = true }
 llmtest-pytest = { workspace = true }
 
 [project]
-name = "llm-test"
+name = "assertllm"
 version = "0.2.0"
 description = "The pytest for LLMs — fast, Pydantic-based assertions for AI applications"
 readme = "README.md"
@@ -26,7 +26,7 @@ authors = [
 maintainers = [
     { name = "Bahadır Araz", email = "bahadiraraz@protonmail.com" },
 ]
-keywords = ["llm", "testing", "ai", "pytest", "evaluation", "pydantic"]
+keywords = ["llm", "testing", "ai", "pytest", "evaluation", "pydantic", "assertions"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Framework :: Pytest",
@@ -50,7 +50,7 @@ dependencies = [
 openai = ["openai>=1.0"]
 anthropic = ["anthropic>=0.30"]
 ollama = ["httpx>=0.25"]
-all = ["llm-test[openai,anthropic,ollama]"]
+all = ["assertllm[openai,anthropic,ollama]"]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
@@ -60,11 +60,11 @@ dev = [
 ]
 
 [project.entry-points."pytest11"]
-llmtest = "llmtest_pytest.plugin"
+assertllm = "llmtest_pytest.plugin"
 
 [project.urls]
-Homepage = "https://llmtest.dev"
-Documentation = "https://docs.llmtest.dev"
+Homepage = "https://assertllm.dev"
+Documentation = "https://docs.assertllm.dev"
 Repository = "https://github.com/bahadiraraz/llmtest"
 "Bug Tracker" = "https://github.com/bahadiraraz/llmtest/issues"
 Changelog = "https://github.com/bahadiraraz/llmtest/releases"
@@ -78,10 +78,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["llmtest", "packages/core/llmtest_core", "packages/pytest-plugin/llmtest_pytest"]
+packages = ["assertllm", "packages/core/llmtest_core", "packages/pytest-plugin/llmtest_pytest"]
 
 [tool.hatch.build.targets.sdist]
-include = ["llmtest/", "packages/core/llmtest_core/", "packages/pytest-plugin/llmtest_pytest/", "README.md", "LICENSE", "pyproject.toml"]
+include = ["assertllm/", "packages/core/llmtest_core/", "packages/pytest-plugin/llmtest_pytest/", "README.md", "LICENSE", "pyproject.toml"]
 
 # ─────────────────────────────────────────────
 # Dev tooling
