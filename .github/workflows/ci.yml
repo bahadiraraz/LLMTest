@@ -80,12 +80,8 @@ jobs:
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          slug: bahadiraraz/LLMTest
-          fail_ci_if_error: false
-          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # ─── Integration tests (requires API keys) ───
   test-integration:
