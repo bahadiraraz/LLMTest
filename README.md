@@ -27,15 +27,29 @@ from llmtest import expect, llm_test
     expect.contains("Paris"),
     expect.latency_under(2000),
     expect.cost_under(0.001),
-    model="claude-sonnet-4-20250514",
+    model="claude-sonnet-4-6",
 )
 def test_capital(llm):
-    output = llm("What is the capital of France?")
-    assert "Paris" in output.content
+    llm("What is the capital of France?")
 ```
 
 ```bash
 pytest test_capitals.py -v
+```
+
+```
+test_capitals.py::test_capital
+  AI response: "The capital of France is Paris."
+  ✓ contains("Paris")
+  ✓ latency_under(2000) — 823ms
+  ✓ cost_under(0.001) — $0.000023
+  PASSED
+
+────────── llmtest summary ──────────
+  LLM tests: 1 passed
+  Assertions: 3/3 passed
+  Total cost: $0.000023
+  Avg latency: 823ms
 ```
 
 ## Features
