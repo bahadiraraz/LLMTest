@@ -1,3 +1,6 @@
+codecov:
+  require_ci_to_pass: false
+
 coverage:
   status:
     project:
@@ -6,3 +9,6 @@ coverage:
     patch:
       default:
         target: auto
+
+fixes:
+  - "packages/core/llmtest_core/::packages/core/llmtest_core/"
