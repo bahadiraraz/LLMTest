@@ -9,9 +9,10 @@
 </p>
 
 <p align="center">
-  <a href="https://badge.fury.io/py/assertllm"><img src="https://badge.fury.io/py/assertllm.svg" alt="PyPI version" /></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+" /></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
+  <a href="https://github.com/bahadiraraz/llmtest/actions/workflows/ci.yml"><img src="https://github.com/bahadiraraz/llmtest/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://pypi.org/project/assertllm/"><img src="https://img.shields.io/pypi/v/assertllm.svg" alt="PyPI version" /></a>
+  <a href="https://pypi.org/project/assertllm/"><img src="https://img.shields.io/pypi/pyversions/assertllm.svg" alt="Python versions" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT" /></a>
 </p>
 
 ## Quick Start
