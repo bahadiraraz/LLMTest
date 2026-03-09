@@ -47,7 +47,7 @@ class BaseProvider(ABC):
         """Convenience wrapper for sync contexts (pytest, CLI)."""
         import asyncio
 
-        return asyncio.get_event_loop().run_until_complete(self.call(input))
+        return asyncio.run(self.call(input))
 
 
 class ProviderRegistry:

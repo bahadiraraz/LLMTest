@@ -10,37 +10,29 @@ from llmtest_core.providers import BaseProvider, MockProvider, ProviderRegistry
 class TestMockProvider:
     def test_default_response(self):
         provider = MockProvider()
-        result = asyncio.get_event_loop().run_until_complete(
-            provider.call(LLMInput.simple("Hello"))
-        )
+        result = asyncio.run(provider.call(LLMInput.simple("Hello")))
         assert result.content == "Mock response"
         assert result.model == "mock-model"
 
     def test_custom_response(self):
         provider = MockProvider(responses={"Hello": "World"})
-        result = asyncio.get_event_loop().run_until_complete(
-            provider.call(LLMInput.simple("Hello"))
-        )
+        result = asyncio.run(provider.call(LLMInput.simple("Hello")))
         assert result.content == "World"
 
     def test_fallback_to_default(self):
         provider = MockProvider(responses={"default": "Fallback"})
-        result = asyncio.get_event_loop().run_until_complete(
-            provider.call(LLMInput.simple("Unknown prompt"))
-        )
+        result = asyncio.run(provider.call(LLMInput.simple("Unknown prompt")))
         assert result.content == "Fallback"
 
     def test_latency(self):
         provider = MockProvider(latency_ms=10.0)
-        result = asyncio.get_event_loop().run_until_complete(
-            provider.call(LLMInput.simple("Hello"))
-        )
+        result = asyncio.run(provider.call(LLMInput.simple("Hello")))
         assert result.latency_ms == 10.0
 
     def test_call_count(self):
         provider = MockProvider()
-        asyncio.get_event_loop().run_until_complete(provider.call(LLMInput.simple("1")))
-        asyncio.get_event_loop().run_until_complete(provider.call(LLMInput.simple("2")))
+        asyncio.run(provider.call(LLMInput.simple("1")))
+        asyncio.run(provider.call(LLMInput.simple("2")))
         assert provider._call_count == 2
 
     def test_name(self):

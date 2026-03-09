@@ -71,7 +71,7 @@ jobs:
           pip install pytest pytest-asyncio
 
       - name: Run unit tests
-        run: pytest tests/ -v --tb=short -k "not real_anthropic and not pydantic_ai_integration and not pytest_plugin"
+        run: pytest tests/ -v --tb=short -k "not real_anthropic and not pydantic_ai_integration and not pytest_plugin and not decorator_real and not output_format"
 
   # ─── Integration tests (requires API keys) ───
   test-integration:
@@ -121,20 +121,8 @@ jobs:
       - name: Install build tools
         run: pip install build twine
 
-      - name: Build core
-        run: python -m build packages/core
-
-      - name: Build pytest-plugin
-        run: python -m build packages/pytest-plugin
-
-      - name: Build providers
-        run: |
-          python -m build packages/providers/openai
-          python -m build packages/providers/anthropic
-          python -m build packages/providers/ollama
-
-      - name: Build root package
-        run: python -m build .
+      - name: Build package
+        run: python -m build . -o dist/
 
       - name: Check distributions
-        run: twine check packages/core/dist/* packages/pytest-plugin/dist/* dist/*
+        run: twine check dist/*

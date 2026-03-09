@@ -29,9 +29,7 @@ class TestTestRunner:
             assertions=[Contains("Paris")],
         )
         runner = TestRunner()
-        suite = asyncio.get_event_loop().run_until_complete(
-            runner.run([tc], provider=mock_provider)
-        )
+        suite = asyncio.run(runner.run([tc], provider=mock_provider))
         assert suite.total == 1
         assert suite.passed == 1
         assert suite.results[0].status == TestStatus.PASSED
@@ -44,9 +42,7 @@ class TestTestRunner:
             assertions=[Contains("London")],
         )
         runner = TestRunner()
-        suite = asyncio.get_event_loop().run_until_complete(
-            runner.run([tc], provider=mock_provider)
-        )
+        suite = asyncio.run(runner.run([tc], provider=mock_provider))
         assert suite.total == 1
         assert suite.failed == 1
 
@@ -62,9 +58,7 @@ class TestTestRunner:
             ],
         )
         runner = TestRunner()
-        suite = asyncio.get_event_loop().run_until_complete(
-            runner.run([tc], provider=mock_provider)
-        )
+        suite = asyncio.run(runner.run([tc], provider=mock_provider))
         assert suite.passed == 1
 
     def test_multiple_test_cases(self, mock_provider):
@@ -78,9 +72,7 @@ class TestTestRunner:
             for i in range(5)
         ]
         runner = TestRunner(config=RunConfig(max_concurrent=3))
-        suite = asyncio.get_event_loop().run_until_complete(
-            runner.run(cases, provider=mock_provider)
-        )
+        suite = asyncio.run(runner.run(cases, provider=mock_provider))
         assert suite.total == 5
         assert suite.passed == 5
 
@@ -92,9 +84,7 @@ class TestTestRunner:
             assertions=[Contains("Hello")],
         )
         runner = TestRunner(config=RunConfig(dry_run=True))
-        suite = asyncio.get_event_loop().run_until_complete(
-            runner.run([tc], provider=mock_provider)
-        )
+        suite = asyncio.run(runner.run([tc], provider=mock_provider))
         assert suite.total == 1
         assert suite.results[0].status == TestStatus.SKIPPED
 
@@ -107,7 +97,7 @@ class TestTestRunner:
             assertions=[],
         )
         runner = TestRunner(config=RunConfig(timeout_seconds=0.01))
-        suite = asyncio.get_event_loop().run_until_complete(runner.run([tc], provider=provider))
+        suite = asyncio.run(runner.run([tc], provider=provider))
         assert suite.results[0].status == TestStatus.ERROR
         assert "timed out" in suite.results[0].error
 
@@ -121,7 +111,7 @@ class TestTestRunner:
         )
         runner = TestRunner()
         runner.on_progress(lambda r: results.append(r))
-        asyncio.get_event_loop().run_until_complete(runner.run([tc], provider=mock_provider))
+        asyncio.run(runner.run([tc], provider=mock_provider))
         assert len(results) == 1
 
     def test_sync_runner(self, mock_provider):
@@ -143,7 +133,5 @@ class TestTestRunner:
             assertions=[],
         )
         runner = TestRunner()
-        suite = asyncio.get_event_loop().run_until_complete(
-            runner.run([tc], provider=mock_provider)
-        )
+        suite = asyncio.run(runner.run([tc], provider=mock_provider))
         assert suite.total_cost_usd >= 0

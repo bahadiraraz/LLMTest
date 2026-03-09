@@ -23,7 +23,10 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install build tools
-        run: pip install build twine
+        run: pip install build twine ruff
+
+      - name: Lint
+        run: ruff check .
 
       - name: Build package
         run: python -m build . -o dist/
@@ -35,3 +38,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+          skip-existing: true
